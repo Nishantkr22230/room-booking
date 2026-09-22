@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>StayTrack — Booking Manager</title>
+<style>
+:root{--bg:#f4f7fb;--card:#fff;--text:#172033;--muted:#6b7280;--line:#e6eaf0;--accent:#2563eb;--green:#16a34a;--amber:#d97706;--red:#dc2626;--shadow:0 12px 35px rgba(31,41,55,.08)}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
+header{background:linear-gradient(135deg,#111827,#1d4ed8);color:#fff;padding:22px 18px 28px}
+.wrap{max-width:1200px;margin:auto;padding:0 16px}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:44px;height:44px;border-radius:13px;background:#fff;color:#1d4ed8;display:grid;place-items:center;font-weight:900;font-size:20px}
+h1{font-size:23px;margin:0}.sub{font-size:13px;opacity:.8;margin-top:3px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}.toolbar button,.toolbar select,.toolbar input{border:0;border-radius:10px;padding:11px 13px;background:#fff;color:#172033;font-weight:600}
+.toolbar button{cursor:pointer}.toolbar .primary{background:#60a5fa;color:#07152f}
+main{padding:22px 0 50px}.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}.stat,.card{background:var(--card);border:1px solid var(--line);border-radius:17px;box-shadow:var(--shadow)}.stat{padding:17px}.stat .label{font-size:12px;color:var(--muted)}.stat .value{font-size:26px;font-weight:800;margin-top:5px}
+.panel{margin-top:18px;padding:18px}.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.panel h2{font-size:17px;margin:0}.datebar{display:flex;align-items:center;gap:8px}.datebar button{border:1px solid var(--line);background:#fff;border-radius:9px;padding:8px 12px;cursor:pointer}.datebar strong{min-width:145px;text-align:center}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.filters select,.filters input{padding:10px;border:1px solid var(--line);border-radius:9px;background:#fff}
+.grid{display:grid;grid-template-columns:repeat(7,minmax(150px,1fr));gap:10px;overflow-x:auto;padding-bottom:5px}.room{min-width:150px;border:1px solid var(--line);border-radius:13px;overflow:hidden;background:#fff}.room h3{font-size:14px;margin:0;padding:12px;background:#f8fafc}.slot{padding:11px;border-top:1px solid var(--line);min-height:104px;cursor:pointer}.slot.free{background:#f0fdf4}.slot.booked{background:#fff7ed}.slot .time{font-size:11px;color:var(--muted)}.slot .status{font-size:11px;font-weight:800;margin-top:4px}.slot .guest{font-weight:700;font-size:13px;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.slot small{display:block;color:var(--muted);margin-top:3px}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{text-align:left;padding:11px 8px;border-bottom:1px solid var(--line)}th{font-size:11px;color:var(--muted);text-transform:uppercase}.badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:800}.b-online{background:#dbeafe;color:#1d4ed8}.b-offline{background:#f3f4f6;color:#374151}.b-pending{background:#fef3c7;color:#92400e}.b-in{background:#dcfce7;color:#166534}.b-out{background:#e5e7eb;color:#374151}
+.actions button{border:0;background:none;cursor:pointer;font-weight:700;color:var(--accent);margin-right:7px}
+.empty{text-align:center;padding:25px;color:var(--muted)}
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;padding:15px;z-index:10}.modal.show{display:flex}.dialog{background:#fff;border-radius:18px;width:min(560px,100%);padding:20px;box-shadow:0 25px 70px rgba(0,0,0,.25)}.dialog h2{margin:0 0 15px}.form{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{display:flex;flex-direction:column;gap:5px}.field.full{grid-column:1/-1}.field label{font-size:11px;color:var(--muted);font-weight:700}.field input,.field select,.field textarea{border:1px solid var(--line);border-radius:9px;padding:10px;font:inherit}.field textarea{min-height:70px}.dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}.dialog-actions button{padding:10px 15px;border-radius:9px;border:0;cursor:pointer;font-weight:700}.cancel{background:#eef2f7}.save{background:#2563eb;color:#fff}.danger{background:#fee2e2;color:#991b1b}
+.notice{margin-top:14px;padding:11px 13px;border-radius:10px;background:#fff7ed;color:#9a3412;font-size:12px;display:none}.notice.show{display:block}
+footer{text-align:center;color:var(--muted);font-size:11px;margin-top:25px}
+@media(max-width:900px){.stats{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:repeat(7,150px)}}@media(max-width:560px){.stats{grid-template-columns:1fr 1fr}.stat .value{font-size:21px}.form{grid-template-columns:1fr}.field.full{grid-column:auto}.panel{padding:13px}}
+</style>
+</head>
+<body>
+<header>
+<div class="wrap">
+  <div class="brand"><div class="logo">S</div><div><h1>StayTrack</h1><div class="sub">Premium Booking • Check-in • Check-out Manager</div></div></div>
+  <div class="toolbar">
+    <button class="primary" onclick="openBooking()">＋ Add Booking</button>
+    <button onclick="exportData()">Export Backup</button>
+    <button onclick="document.getElementById('importFile').click()">Import Backup</button>
+    <input id="importFile" type="file" accept=".json" style="display:none" onchange="importData(event)">
+  </div>
+</div>
+</header>
+
+<main class="wrap">
+<section class="stats">
+ <div class="stat"><div class="label">TOTAL ROOMS</div><div class="value">7</div></div>
+ <div class="stat"><div class="label">BOOKED SLOTS TODAY</div><div class="value" id="statBooked">0</div></div>
+ <div class="stat"><div class="label">CHECKED IN</div><div class="value" id="statIn">0</div></div>
+ <div class="stat"><div class="label">CHECKED OUT</div><div class="value" id="statOut">0</div></div>
+ <div class="stat"><div class="label">BOOKING VALUE</div><div class="value" id="statValue">₹0</div></div>
+</section>
+
+<section class="card panel">
+ <div class="panel-head">
+   <h2>Room Availability</h2>
+   <div class="datebar"><button onclick="changeDate(-1)">‹</button><strong id="dateLabel"></strong><button onclick="changeDate(1)">›</button><button onclick="setToday()">Today</button></div>
+ </div>
+ <div class="filters">
+   <select id="platformFilter" onchange="render()"><option value="">All Platforms</option><option>Airbnb</option><option>Booking.com</option><option>MakeMyTrip</option><option>Goibibo</option><option>Agoda</option><option>Other</option></select>
+   <select id="typeFilter" onchange="render()"><option value="">Online + Offline</option><option>Online</option><option>Offline</option></select>
+ </div>
+ <div id="overlapNotice" class="notice"></div>
+ <div id="roomGrid" class="grid"></div>
+</section>
+
+<section class="card panel">
+ <div class="panel-head"><h2>Bookings</h2><div class="sub" id="bookingCount"></div></div>
+ <div style="overflow:auto;margin-top:10px">
+ <table><thead><tr><th>Guest</th><th>Room</th><th>Slot</th><th>Source</th><th>Type</th><th>Amount</th><th>Payment</th><th>Check-in</th><th>Check-out</th><th>Actions</th></tr></thead>
+ <tbody id="bookingTable"></tbody></table>
+ </div>
+</section>
+<footer>StayTrack stores data in this browser. Use Export Backup regularly if multiple family members use different phones.</footer>
+</main>
+
+<div class="modal" id="modal">
+<div class="dialog">
+<h2 id="modalTitle">Add Booking</h2>
+<div class="form">
+ <div class="field"><label>Guest Name *</label><input id="guest"></div>
+ <div class="field"><label>Phone</label><input id="phone" inputmode="tel"></div>
+ <div class="field"><label>Room *</label><select id="room"></select></div>
+ <div class="field"><label>Slot *</label><select id="slot"><option>Morning</option><option>Overnight</option><option>Full Day</option></select></div>
+ <div class="field"><label>Date *</label><input id="bookDate" type="date"></div>
+ <div class="field"><label>Booking Source</label><select id="source"><option>Airbnb</option><option>Booking.com</option><option>MakeMyTrip</option><option>Goibibo</option><option>Agoda</option><option>Other</option></select></div>
+ <div class="field"><label>Booking Type</label><select id="type"><option>Online</option><option>Offline</option></select></div>
+ <div class="field"><label>Amount (₹)</label><input id="amount" type="number" min="0"></div>
+ <div class="field"><label>Payment</label><select id="payment"><option>Pending</option><option>Paid</option><option>Part Paid</option></select></div>
+ <div class="field"><label>Check-in</label><select id="checkin"><option>Pending</option><option>Checked In</option></select></div>
+ <div class="field"><label>Check-out</label><select id="checkout"><option>Pending</option><option>Checked Out</option></select></div>
+ <div class="field full"><label>Notes</label><textarea id="notes" placeholder="Any guest/property notes..."></textarea></div>
+</div>
+<div id="modalNotice" class="notice"></div>
+<div class="dialog-actions"><button class="cancel" onclick="closeModal()">Cancel</button><button class="save" onclick="saveBooking()">Save Booking</button></div>
+</div>
+</div>
+
+<script>
+const rooms=["1109","1238","1240","1241","1248","1348","1349"];
+const slots={
+ "Morning":"10:00 AM – 6:00 PM",
+ "Overnight":"8:00 PM – 10:00 AM next day",
+ "Full Day":"10:00 AM – 10:00 AM next day"
+};
+let bookings=JSON.parse(localStorage.getItem("staytrack_bookings")||"[]");
+let viewDate=new Date(); viewDate.setHours(0,0,0,0); let editId=null;
+
+const iso=d=>d.toISOString().slice(0,10);
+const fmt=d=>d.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});
+function persist(){localStorage.setItem("staytrack_bookings",JSON.stringify(bookings))}
+function setToday(){viewDate=new Date();viewDate.setHours(0,0,0,0);render()}
+function changeDate(n){viewDate.setDate(viewDate.getDate()+n);render()}
+function sameDay(a,b){return a===b}
+function init(){
+ const rs=document.getElementById("room"); rs.innerHTML=rooms.map(r=>`<option>${r}</option>`).join("");
+ document.getElementById("bookDate").value=iso(viewDate); render();
+}
+function filtered(){
+ const p=document.getElementById("platformFilter").value,t=document.getElementById("typeFilter").value;
+ return bookings.filter(b=>b.date===iso(viewDate)&&(!p||b.source===p)&&(!t||b.type===t));
+}
+function render(){
+ document.getElementById("dateLabel").textContent=fmt(viewDate);
+ const list=filtered();
+ const grid=document.getElementById("roomGrid");
+ grid.innerHTML=rooms.map(r=>`<div class="room"><h3>Room ${r}</h3>${Object.keys(slots).map(s=>{
+   const b=list.find(x=>x.room===r&&x.slot===s);
+   return b?`<div class="slot booked" onclick="editBooking('${b.id}')"><div class="time">${slots[s]}</div><div class="status">BOOKED</div><div class="guest">${esc(b.guest)}</div><small>${esc(b.source)} • ₹${Number(b.amount||0).toLocaleString("en-IN")}</small></div>`:
+   `<div class="slot free" onclick="openBooking('${r}','${s}')"><div class="time">${slots[s]}</div><div class="status" style="color:#15803d">AVAILABLE</div><small>Tap to book</small></div>`;
+ }).join("")}</div>`).join("");
+ const rows=list.slice().sort((a,b)=>a.room.localeCompare(b.room)).map(b=>`<tr>
+ <td><b>${esc(b.guest)}</b><br><span style="color:#6b7280">${esc(b.phone||"")}</span></td><td>${b.room}</td><td>${b.slot}</td>
+ <td>${esc(b.source)}</td><td><span class="badge ${b.type==="Online"?"b-online":"b-offline"}">${b.type}</span></td>
+ <td>₹${Number(b.amount||0).toLocaleString("en-IN")}</td><td>${esc(b.payment)}</td>
+ <td><span class="badge ${b.checkin==="Checked In"?"b-in":"b-pending"}">${b.checkin}</span></td>
+ <td><span class="badge ${b.checkout==="Checked Out"?"b-out":"b-pending"}">${b.checkout}</span></td>
+ <td class="actions"><button onclick="editBooking('${b.id}')">Edit</button><button onclick="deleteBooking('${b.id}')">Delete</button></td>
+ </tr>`).join("");
+ document.getElementById("bookingTable").innerHTML=rows||`<tr><td colspan="10" class="empty">No bookings for this date.</td></tr>`;
+ document.getElementById("bookingCount").textContent=list.length+" booking(s)";
+ const allToday=bookings.filter(b=>b.date===iso(new Date()));
+ document.getElementById("statBooked").textContent=allToday.length;
+ document.getElementById("statIn").textContent=allToday.filter(b=>b.checkin==="Checked In").length;
+ document.getElementById("statOut").textContent=allToday.filter(b=>b.checkout==="Checked Out").length;
+ document.getElementById("statValue").textContent="₹"+allToday.reduce((s,b)=>s+Number(b.amount||0),0).toLocaleString("en-IN");
+ checkOverlap();
+}
+function checkOverlap(){
+ const d=iso(viewDate), seen=new Set(), overlaps=[];
+ bookings.filter(b=>b.date===d).forEach(b=>{const k=b.room+"|"+b.slot;if(seen.has(k)) overlaps.push(k);seen.add(k)});
+ const n=document.getElementById("overlapNotice");
+ if(overlaps.length){n.textContent="⚠️ Double-booking warning: "+overlaps.map(x=>x.replace("|"," • ")).join(", ");n.classList.add("show")}else n.classList.remove("show");
+}
+function openBooking(r="",s=""){
+ editId=null; document.getElementById("modalTitle").textContent="Add Booking";
+ document.getElementById("room").value=r||rooms[0]; document.getElementById("slot").value=s||"Morning"; document.getElementById("bookDate").value=iso(viewDate);
+ ["guest","phone","amount","notes"].forEach(id=>document.getElementById(id).value="");
+ document.getElementById("source").value="Airbnb";document.getElementById("type").value="Online";document.getElementById("payment").value="Pending";document.getElementById("checkin").value="Pending";document.getElementById("checkout").value="Pending";
+ document.getElementById("modalNotice").classList.remove("show");document.getElementById("modal").classList.add("show");
+}
+function editBooking(id){
+ const b=bookings.find(x=>x.id===id);if(!b)return;editId=id;
+ document.getElementById("modalTitle").textContent="Edit Booking";
+ ["guest","phone","amount","notes"].forEach(k=>document.getElementById(k).value=b[k]||"");
+ ["room","slot","bookDate","source","type","payment","checkin","checkout"].forEach(k=>document.getElementById(k).value=b[k]);
+ document.getElementById("modal").classList.add("show");
+}
+function closeModal(){document.getElementById("modal").classList.remove("show")}
+function saveBooking(){
+ const b={id:editId||Date.now().toString(),guest:document.getElementById("guest").value.trim(),phone:document.getElementById("phone").value.trim(),room:document.getElementById("room").value,slot:document.getElementById("slot").value,date:document.getElementById("bookDate").value,source:document.getElementById("source").value,type:document.getElementById("type").value,amount:Number(document.getElementById("amount").value||0),payment:document.getElementById("payment").value,checkin:document.getElementById("checkin").value,checkout:document.getElementById("checkout").value,notes:document.getElementById("notes").value.trim()};
+ if(!b.guest||!b.date){const n=document.getElementById("modalNotice");n.textContent="Please enter guest name and date.";n.classList.add("show");return}
+ const conflict=bookings.find(x=>x.id!==b.id&&x.date===b.date&&x.room===b.room&&x.slot===b.slot);
+ if(conflict){const n=document.getElementById("modalNotice");n.textContent="⚠️ This room and slot is already booked by "+conflict.guest+". Please choose another slot/room.";n.classList.add("show");return}
+ if(editId){const i=bookings.findIndex(x=>x.id===editId);bookings[i]=b}else bookings.push(b);
+ persist();closeModal();viewDate=new Date(b.date+"T00:00:00");render();
+}
+function deleteBooking(id){const b=bookings.find(x=>x.id===id);if(b&&confirm("Delete booking for "+b.guest+"?")){bookings=bookings.filter(x=>x.id!==id);persist();render()}}
+function exportData(){
+ const blob=new Blob([JSON.stringify(bookings,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="staytrack-backup-"+iso(new Date())+".json";a.click();URL.revokeObjectURL(a.href)
+}
+function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!Array.isArray(x))throw 0;bookings=x;persist();render();alert("Backup imported successfully.")}catch{alert("Invalid backup file.")}};r.readAsText(f);e.target.value=""}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+init();
+</script>
+</body>
+</html>
